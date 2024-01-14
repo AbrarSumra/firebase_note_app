@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "663229103692",
+    "project_id": "wscube-39aaf",
+    "storage_bucket": "wscube-39aaf.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:663229103692:android:54415681e008f77bc9bee9",
+        "android_client_info": {
+          "package_name": "com.example.wscube_firebase"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJ5hR2z0HvihfdJO-xKKAdjuM5kREEwsI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
