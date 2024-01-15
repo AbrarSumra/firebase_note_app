@@ -27,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Fire base Note App",
+          "Firebase Note App",
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: Colors.blue,
@@ -83,9 +83,35 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           IconButton(
                             onPressed: () {
-                              var collRef = firestore.collection("notes");
-                              collRef.doc(mData[index].id).delete();
-                              setState(() {});
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text("Delete?"),
+                                      content: const Text(
+                                          "Are you want to sure delete?"),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            var collRef =
+                                                firestore.collection("notes");
+                                            collRef
+                                                .doc(mData[index].id)
+                                                .delete();
+                                            setState(() {});
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text("Yes"),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text("No"),
+                                        )
+                                      ],
+                                    );
+                                  });
                             },
                             icon: const Icon(
                               Icons.delete,
