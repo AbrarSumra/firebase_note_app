@@ -8,14 +8,16 @@ import 'package:wscube_firebase/widget_constant/custom_textfield.dart';
 class HomeScreen extends StatefulWidget {
   final String userId;
 
-  const HomeScreen({super.key, this.userId = ""});
+  const HomeScreen({super.key, required this.userId});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late FirebaseFirestore firestore;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  late FirebaseFirestore fireStore;
 
   TextEditingController titleController = TextEditingController();
   TextEditingController descController = TextEditingController();
@@ -23,32 +25,49 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    firestore = FirebaseFirestore.instance;
+    fireStore = FirebaseFirestore.instance;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: const Text(
           "Firebase Note App",
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        leading: IconButton(
+          onPressed: () {
+            _scaffoldKey.currentState!.openDrawer();
+            setState(() {});
+          },
+          icon: const Icon(
+            Icons.menu,
+            color: Colors.white,
+          ),
         ),
         actions: [
           IconButton(
             onPressed: () async {
               var pref = await SharedPreferences.getInstance();
               pref.setBool(LoginScreen.LOGIN_PREFS_KEY, false);
+              if (!mounted) {
+                return;
+              }
               Navigator.pushReplacement(
                   context, MaterialPageRoute(builder: (ctx) => LoginScreen()));
             },
-            icon: Icon(Icons.logout),
+            icon: const Icon(
+              Icons.logout,
+              color: Colors.white,
+            ),
           ),
         ],
         backgroundColor: Colors.blue,
       ),
       body: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        future: firestore
+        future: fireStore
             .collection("users")
             .doc(widget.userId)
             .collection("notes")
@@ -113,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         TextButton(
                                           onPressed: () {
                                             var collRef =
-                                                firestore.collection("users");
+                                                fireStore.collection("users");
                                             collRef
                                                 .doc(widget.userId)
                                                 .collection("notes")
@@ -150,20 +169,33 @@ class _HomeScreenState extends State<HomeScreen> {
           return Container();
         },
       ),
-      drawer: Drawer(
+      drawer: const Drawer(
         child: SafeArea(
           child: Column(
-            children: [Text("")],
+            children: [
+              Text(
+                "User",
+                style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 18),
+              ),
+            ],
           ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.blue,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
         onPressed: () {
           bottomSheet();
         },
         child: const Icon(
           Icons.add,
-          size: 30,
+          color: Colors.white,
+          size: 34,
         ),
       ),
     );
@@ -211,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPressed: () {
                         if (titleController.text.isNotEmpty &&
                             descController.text.isNotEmpty) {
-                          var collRef = firestore.collection("users");
+                          var collRef = fireStore.collection("users");
                           if (isUpdate) {
                             /// For Update Note
                             collRef
@@ -232,6 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           }
                           titleController.clear();
                           descController.clear();
+
                           setState(() {});
                           Navigator.pop(context);
                         }

@@ -15,7 +15,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  late FirebaseFirestore firestore;
+  final fireStore = FirebaseFirestore.instance;
 
   @override
   void initState() {
@@ -24,9 +24,14 @@ class _SplashScreenState extends State<SplashScreen> {
       var prefs = await SharedPreferences.getInstance();
       bool? checkLogin = prefs.getBool(LoginScreen.LOGIN_PREFS_KEY);
       Widget navigateTo = LoginScreen();
+      if (!mounted) {
+        return;
+      }
 
       if (checkLogin != null && checkLogin) {
-        navigateTo = HomeScreen();
+        navigateTo = HomeScreen(
+          userId: fireStore.collection("users").id,
+        );
       }
 
       Navigator.pushReplacement(
