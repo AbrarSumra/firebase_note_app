@@ -1,10 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wscube_firebase/models/note_model.dart';
+import 'package:wscube_firebase/screens/login_page.dart';
 import 'package:wscube_firebase/widget_constant/custom_textfield.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final String userId;
+
+  const HomeScreen({super.key, this.userId = ""});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -30,10 +34,25 @@ class _HomeScreenState extends State<HomeScreen> {
           "Firebase Note App",
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
+        actions: [
+          IconButton(
+            onPressed: () async {
+              var pref = await SharedPreferences.getInstance();
+              pref.setBool(LoginScreen.LOGIN_PREFS_KEY, false);
+              Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (ctx) => LoginScreen()));
+            },
+            icon: Icon(Icons.logout),
+          ),
+        ],
         backgroundColor: Colors.blue,
       ),
       body: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        future: firestore.collection("notes").get(),
+        future: firestore
+            .collection("users")
+            .doc(widget.userId)
+            .collection("notes")
+            .get(),
         builder: (_, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -94,8 +113,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                         TextButton(
                                           onPressed: () {
                                             var collRef =
-                                                firestore.collection("notes");
+                                                firestore.collection("users");
                                             collRef
+                                                .doc(widget.userId)
+                                                .collection("notes")
                                                 .doc(mData[index].id)
                                                 .delete();
                                             setState(() {});
@@ -128,6 +149,13 @@ class _HomeScreenState extends State<HomeScreen> {
           }
           return Container();
         },
+      ),
+      drawer: Drawer(
+        child: SafeArea(
+          child: Column(
+            children: [Text("")],
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -183,19 +211,24 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPressed: () {
                         if (titleController.text.isNotEmpty &&
                             descController.text.isNotEmpty) {
-                          var collRef = firestore.collection("notes");
+                          var collRef = firestore.collection("users");
                           if (isUpdate) {
                             /// For Update Note
-                            collRef.doc(docId).update(NoteModel(
-                                    title: titleController.text.toString(),
-                                    desc: descController.text.toString())
-                                .toMap());
+                            collRef
+                                .doc(widget.userId)
+                                .collection("notes")
+                                .doc(docId)
+                                .update(NoteModel(
+                                        title: titleController.text.toString(),
+                                        desc: descController.text.toString())
+                                    .toMap());
                           } else {
                             /// For Add New Note
-                            collRef.add(NoteModel(
-                                    title: titleController.text.toString(),
-                                    desc: descController.text.toString())
-                                .toMap());
+                            collRef.doc(widget.userId).collection("notes").add(
+                                NoteModel(
+                                        title: titleController.text.toString(),
+                                        desc: descController.text.toString())
+                                    .toMap());
                           }
                           titleController.clear();
                           descController.clear();
