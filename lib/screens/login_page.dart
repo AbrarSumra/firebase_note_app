@@ -34,7 +34,7 @@ class LoginScreen extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.only(top: 150, left: 30),
-                  height: 270,
+                  height: 300,
                   width: double.infinity,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,13 +47,14 @@ class LoginScreen extends StatelessWidget {
                             "Welcome",
                             speed: const Duration(milliseconds: 250),
                             textStyle: GoogleFonts.damion(
-                              fontSize: 35,
+                              fontSize: 50,
                               color: Colors.black,
                               fontWeight: FontWeight.w900,
                             ),
                           )
                         ],
                       ),
+                      const SizedBox(height: 21),
                       AnimatedTextKit(
                         repeatForever: true,
                         animatedTexts: [
