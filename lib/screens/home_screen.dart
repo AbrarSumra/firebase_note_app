@@ -83,88 +83,100 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           } else if (snapshot.hasData) {
             var mData = snapshot.data!.docs;
-            return ListView.builder(
-              itemCount: mData.length,
-              itemBuilder: (_, index) {
-                NoteModel currNote = NoteModel.fromMap(mData[index].data());
-                return Container(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade200,
-                  ),
-                  child: ListTile(
-                    title: Text(
-                      currNote.title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    subtitle: Text(currNote.desc),
-                    trailing: SizedBox(
-                      width: 100,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          IconButton(
-                            onPressed: () {
-                              bottomSheet(
-                                isUpdate: true,
-                                title: currNote.title,
-                                desc: currNote.desc,
-                                docId: mData[index].id,
-                              );
-                            },
-                            icon: const Icon(Icons.edit),
+            return mData.isNotEmpty
+                ? ListView.builder(
+                    itemCount: mData.length,
+                    itemBuilder: (_, index) {
+                      NoteModel currNote =
+                          NoteModel.fromMap(mData[index].data());
+                      return Container(
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade200,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(15),
+                            bottomRight: Radius.circular(15),
                           ),
-                          IconButton(
-                            onPressed: () {
-                              showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: const Text("Delete?"),
-                                      content: const Text(
-                                          "Are you want to sure delete?"),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            var collRef =
-                                                fireStore.collection("users");
-                                            collRef
-                                                .doc(widget.userId)
-                                                .collection("notes")
-                                                .doc(mData[index].id)
-                                                .delete();
-                                            setState(() {});
-                                            Navigator.pop(context);
-                                          },
-                                          child: const Text("Yes"),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          child: const Text("No"),
-                                        )
-                                      ],
-                                    );
-                                  });
-                            },
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Colors.red,
+                        ),
+                        child: ListTile(
+                          title: Text(
+                            currNote.title,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
                             ),
                           ),
-                        ],
-                      ),
+                          subtitle: Text(currNote.desc),
+                          trailing: SizedBox(
+                            width: 100,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                  onPressed: () {
+                                    bottomSheet(
+                                      isUpdate: true,
+                                      title: currNote.title,
+                                      desc: currNote.desc,
+                                      docId: mData[index].id,
+                                    );
+                                  },
+                                  icon: const Icon(Icons.edit),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            title: const Text("Delete?"),
+                                            content: const Text(
+                                                "Are you want to sure delete?"),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  fireStore
+                                                      .collection("users")
+                                                      .doc(widget.userId)
+                                                      .collection("notes")
+                                                      .doc(mData[index].id)
+                                                      .delete();
+                                                  setState(() {});
+                                                  Navigator.pop(context);
+                                                },
+                                                child: const Text("Yes"),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                                child: const Text("No"),
+                                              )
+                                            ],
+                                          );
+                                        });
+                                  },
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                : const Center(
+                    child: Text(
+                      "No notes yet!!!",
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
                     ),
-                  ),
-                );
-              },
-            );
+                  );
           }
           return Container();
         },
