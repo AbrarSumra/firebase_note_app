@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:wscube_firebase/screens/otp_screens/otp_screen.dart';
+import 'package:wscube_firebase/widget_constant/button.dart';
 
 class MobileNumberScreen extends StatelessWidget {
   MobileNumberScreen({super.key});
@@ -102,37 +103,19 @@ class MobileNumberScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 41),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (mobileController.text.isNotEmpty) {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (ctx) => OTPScreen(
-                                      moNumber:
-                                          int.parse(mobileController.text),
-                                    )));
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromRGBO(109, 93, 255, 1),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text(
-                      "Get OTP",
-                      style: TextStyle(
-                        fontSize: 24,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                )
+                CustomButton(
+                  label: "Get OTP",
+                  onTap: () {
+                    if (mobileController.text.isNotEmpty) {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (ctx) => OTPScreen(
+                                    moNumber: int.parse(mobileController.text),
+                                  )));
+                    }
+                  },
+                ),
               ],
             ),
           ),

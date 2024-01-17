@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:wscube_firebase/widget_constant/button.dart';
 
 class OTPScreen extends StatefulWidget {
   const OTPScreen({super.key, required this.moNumber});
@@ -136,27 +137,10 @@ class _OTPScreenState extends State<OTPScreen> {
                 ],
               ),
               const SizedBox(height: 11),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromRGBO(109, 93, 255, 1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    "VERIFY & PROCEED",
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              )
+              CustomButton(
+                label: "VERIFY & PROCEED",
+                onTap: () {},
+              ),
             ],
           ),
         ),

@@ -70,15 +70,21 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
                               if (widget.isUpdate) {
                                 /// For Update Note
                                 collRef.doc(widget.docId).update(NoteModel(
-                                        title: titleController.text.toString(),
-                                        desc: descController.text.toString())
-                                    .toMap());
+                                      title: titleController.text.toString(),
+                                      desc: descController.text.toString(),
+                                      time: DateTime.now()
+                                          .millisecondsSinceEpoch
+                                          .toString(),
+                                    ).toMap());
                               } else {
                                 /// For Add New Note
                                 collRef.add(NoteModel(
-                                        title: titleController.text.toString(),
-                                        desc: descController.text.toString())
-                                    .toMap());
+                                  title: titleController.text.toString(),
+                                  desc: descController.text.toString(),
+                                  time: DateTime.now()
+                                      .millisecondsSinceEpoch
+                                      .toString(),
+                                ).toMap());
                               }
                               titleController.clear();
                               descController.clear();

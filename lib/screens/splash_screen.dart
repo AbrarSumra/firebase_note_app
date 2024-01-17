@@ -10,6 +10,8 @@ import 'home_screen.dart';
 import 'login_page.dart';
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
@@ -22,16 +24,15 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     Timer(const Duration(seconds: 6), () async {
       var prefs = await SharedPreferences.getInstance();
-      bool? checkLogin = prefs.getBool(LoginScreen.LOGIN_PREFS_KEY);
+      String? checkLogin = prefs.getString(LoginScreen.LOGIN_PREFS_KEY);
       Widget navigateTo = LoginScreen();
       if (!mounted) {
         return;
       }
 
-      if (checkLogin != null && checkLogin) {
-        navigateTo = HomeScreen(
-          userId: fireStore.collection("users").id,
-        );
+      print(checkLogin);
+      if (checkLogin != null && checkLogin != "") {
+        navigateTo = HomeScreen();
       }
 
       Navigator.pushReplacement(

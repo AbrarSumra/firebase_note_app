@@ -6,9 +6,9 @@ import 'package:wscube_firebase/screens/login_page.dart';
 import 'package:wscube_firebase/widget_constant/custom_textfield.dart';
 
 class HomeScreen extends StatefulWidget {
-  final String userId;
+  //final String userId;
 
-  const HomeScreen({super.key, required this.userId});
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -16,6 +16,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  String userId = "";
+  String searchQuery = "";
+  bool isSearching = false;
 
   late FirebaseFirestore fireStore;
 
@@ -26,6 +29,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     fireStore = FirebaseFirestore.instance;
+    getUidFromPrefs();
+  }
+
+  getUidFromPrefs() async {
+    var prefs = await SharedPreferences.getInstance();
+    userId = prefs.getString(LoginScreen.LOGIN_PREFS_KEY)!;
+    setState(() {});
   }
 
   @override
@@ -33,10 +43,29 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: const Text(
-          "Firebase Note App",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
+        title: isSearching
+            ? SizedBox(
+                height: 40,
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.blue),
+                        borderRadius: BorderRadius.circular(8)),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      searchQuery = value;
+                    });
+                  },
+                ),
+              )
+            : const Text(
+                "Firebase Note App",
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+              ),
         leading: IconButton(
           onPressed: () {
             _scaffoldKey.currentState!.openDrawer();
@@ -49,14 +78,53 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
+            onPressed: () {
+              setState(() {
+                isSearching = !isSearching;
+              });
+            },
+            icon: const Icon(
+              Icons.search,
+              color: Colors.white,
+            ),
+          ),
+          IconButton(
             onPressed: () async {
-              var pref = await SharedPreferences.getInstance();
-              pref.setBool(LoginScreen.LOGIN_PREFS_KEY, false);
-              if (!mounted) {
-                return;
-              }
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (ctx) => LoginScreen()));
+              showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) {
+                    return AlertDialog(
+                      title: const Text("Logout?"),
+                      content: const Text("Are sure want to logout ?"),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            "Cancel",
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            var pref = await SharedPreferences.getInstance();
+                            pref.setString(LoginScreen.LOGIN_PREFS_KEY, "");
+
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (ctx) => const LoginScreen()));
+                          },
+                          child: const Text(
+                            "Logout",
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    );
+                  });
             },
             icon: const Icon(
               Icons.logout,
@@ -69,8 +137,9 @@ class _HomeScreenState extends State<HomeScreen> {
       body: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
         future: fireStore
             .collection("users")
-            .doc(widget.userId)
+            .doc(userId)
             .collection("notes")
+            .orderBy("time", descending: true)
             .get(),
         builder: (_, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -83,9 +152,15 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           } else if (snapshot.hasData) {
             var mData = snapshot.data!.docs;
-            return mData.isNotEmpty
+            var filteredNotes = mData
+                .where((note) => note
+                    .data()["title"]
+                    .toLowerCase()
+                    .contains(searchQuery.toLowerCase()))
+                .toList();
+            return filteredNotes.isNotEmpty
                 ? ListView.builder(
-                    itemCount: mData.length,
+                    itemCount: filteredNotes.length,
                     itemBuilder: (_, index) {
                       NoteModel currNote =
                           NoteModel.fromMap(mData[index].data());
@@ -139,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 onPressed: () {
                                                   fireStore
                                                       .collection("users")
-                                                      .doc(widget.userId)
+                                                      .doc(userId)
                                                       .collection("notes")
                                                       .doc(mData[index].id)
                                                       .delete();
@@ -259,20 +334,28 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (isUpdate) {
                             /// For Update Note
                             collRef
-                                .doc(widget.userId)
+                                .doc(userId)
                                 .collection("notes")
                                 .doc(docId)
                                 .update(NoteModel(
-                                        title: titleController.text.toString(),
-                                        desc: descController.text.toString())
-                                    .toMap());
+                                  title: titleController.text.toString(),
+                                  desc: descController.text.toString(),
+                                  time: DateTime.now()
+                                      .millisecondsSinceEpoch
+                                      .toString(),
+                                ).toMap());
                           } else {
                             /// For Add New Note
-                            collRef.doc(widget.userId).collection("notes").add(
-                                NoteModel(
-                                        title: titleController.text.toString(),
-                                        desc: descController.text.toString())
-                                    .toMap());
+                            collRef
+                                .doc(userId)
+                                .collection("notes")
+                                .add(NoteModel(
+                                  title: titleController.text.toString(),
+                                  desc: descController.text.toString(),
+                                  time: DateTime.now()
+                                      .millisecondsSinceEpoch
+                                      .toString(),
+                                ).toMap());
                           }
                           titleController.clear();
                           descController.clear();
