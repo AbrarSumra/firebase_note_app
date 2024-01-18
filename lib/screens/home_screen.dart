@@ -17,7 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String userId = "";
-  String searchQuery = "";
+  String userName = "";
   bool isSearching = false;
 
   late FirebaseFirestore fireStore;
@@ -34,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     fireStore = FirebaseFirestore.instance;
     getUidFromPrefs();
+    //getUserName();
   }
 
   getUidFromPrefs() async {
@@ -41,6 +42,37 @@ class _HomeScreenState extends State<HomeScreen> {
     userId = prefs.getString(LoginScreen.LOGIN_PREFS_KEY)!;
     setState(() {});
   }
+
+  /// For Search
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> filterNotes(
+      String query, List<QueryDocumentSnapshot<Map<String, dynamic>>> notes) {
+    if (query.isEmpty) {
+      return notes;
+    }
+    return notes.where((note) {
+      var data = note.data();
+      var currNote = NoteModel.fromMap(data.cast<String, dynamic>());
+      return currNote.title.toLowerCase().contains(query.toLowerCase()) ||
+          currNote.desc.toLowerCase().contains(query.toLowerCase());
+    }).toList();
+  }
+
+  /*/// For UserName
+  Future<void> getUserName() async {
+    try {
+      if (userId.isNotEmpty) {
+        DocumentSnapshot<Map<String, dynamic>> userDoc =
+            await fireStore.collection("users").doc(userId).get();
+        if (userDoc.exists) {
+          setState(() {
+            userName = userDoc.data()?["name"] ?? "";
+          });
+        }
+      }
+    } catch (e) {
+      print("Error fetching username: $e");
+    }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -257,12 +289,12 @@ class _HomeScreenState extends State<HomeScreen> {
           return Container();
         },
       ),
-      drawer: const Drawer(
+      drawer: Drawer(
         child: SafeArea(
           child: Column(
             children: [
               Text(
-                "User",
+                userName,
                 style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.w500,
@@ -384,19 +416,5 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         });
-  }
-
-  /// For Search
-  List<QueryDocumentSnapshot<Map<String, dynamic>>> filterNotes(
-      String query, List<QueryDocumentSnapshot<Map<String, dynamic>>> notes) {
-    if (query.isEmpty) {
-      return notes;
-    }
-    return notes.where((note) {
-      var data = note.data();
-      var currNote = NoteModel.fromMap(data.cast<String, dynamic>());
-      return currNote.title.toLowerCase().contains(query.toLowerCase()) ||
-          currNote.desc.toLowerCase().contains(query.toLowerCase());
-    }).toList();
   }
 }
