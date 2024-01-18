@@ -24,6 +24,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   TextEditingController titleController = TextEditingController();
   TextEditingController descController = TextEditingController();
+  TextEditingController searchController = TextEditingController();
+
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> mData = [];
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> filteredData = [];
 
   @override
   void initState() {
@@ -47,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ? SizedBox(
                 height: 40,
                 child: TextFormField(
+                  controller: searchController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                         borderSide: const BorderSide(color: Colors.blue),
@@ -54,9 +59,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     filled: true,
                     fillColor: Colors.white,
                   ),
-                  onChanged: (value) {
+                  onChanged: (query) {
                     setState(() {
-                      searchQuery = value;
+                      filteredData = filterNotes(query, mData);
                     });
                   },
                 ),
@@ -81,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () {
               setState(() {
                 isSearching = !isSearching;
+                searchController.clear();
               });
             },
             icon: const Icon(
@@ -151,19 +157,14 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Text("Note not loaded ${snapshot.hasError}"),
             );
           } else if (snapshot.hasData) {
-            var mData = snapshot.data!.docs;
-            var filteredNotes = mData
-                .where((note) => note
-                    .data()["title"]
-                    .toLowerCase()
-                    .contains(searchQuery.toLowerCase()))
-                .toList();
-            return filteredNotes.isNotEmpty
+            mData = snapshot.data!.docs;
+            filteredData = filterNotes(searchController.text, mData);
+            return filteredData.isNotEmpty
                 ? ListView.builder(
-                    itemCount: filteredNotes.length,
+                    itemCount: filteredData.length,
                     itemBuilder: (_, index) {
                       NoteModel currNote =
-                          NoteModel.fromMap(mData[index].data());
+                          NoteModel.fromMap(filteredData[index].data());
                       return Container(
                         margin: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 10),
@@ -383,5 +384,19 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         });
+  }
+
+  /// For Search
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> filterNotes(
+      String query, List<QueryDocumentSnapshot<Map<String, dynamic>>> notes) {
+    if (query.isEmpty) {
+      return notes;
+    }
+    return notes.where((note) {
+      var data = note.data();
+      var currNote = NoteModel.fromMap(data.cast<String, dynamic>());
+      return currNote.title.toLowerCase().contains(query.toLowerCase()) ||
+          currNote.desc.toLowerCase().contains(query.toLowerCase());
+    }).toList();
   }
 }
