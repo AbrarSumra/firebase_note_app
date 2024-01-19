@@ -6,9 +6,9 @@ import 'package:wscube_firebase/screens/login_page.dart';
 import 'package:wscube_firebase/widget_constant/custom_textfield.dart';
 
 class HomeScreen extends StatefulWidget {
-  //final String userId;
-
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.userName = "", required this.userId});
+  final String userName;
+  final String userId;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -16,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  String userId = "";
+  //String userId = "";
   String userName = "";
   bool isSearching = false;
 
@@ -33,15 +33,15 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     fireStore = FirebaseFirestore.instance;
-    getUidFromPrefs();
+    //getUidFromPrefs();
     //getUserName();
   }
 
-  getUidFromPrefs() async {
+  /*getUidFromPrefs() async {
     var prefs = await SharedPreferences.getInstance();
     userId = prefs.getString(LoginScreen.LOGIN_PREFS_KEY)!;
     setState(() {});
-  }
+  }*/
 
   /// For Search
   List<QueryDocumentSnapshot<Map<String, dynamic>>> filterNotes(
@@ -57,8 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
   }
 
-  /*/// For UserName
-  Future<void> getUserName() async {
+  /// For UserName
+  /*Future<void> getUserName() async {
     try {
       if (userId.isNotEmpty) {
         DocumentSnapshot<Map<String, dynamic>> userDoc =
@@ -126,56 +126,13 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.white,
             ),
           ),
-          IconButton(
-            onPressed: () async {
-              showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (_) {
-                    return AlertDialog(
-                      title: const Text("Logout?"),
-                      content: const Text("Are sure want to logout ?"),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Text(
-                            "Cancel",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () async {
-                            var pref = await SharedPreferences.getInstance();
-                            pref.setString(LoginScreen.LOGIN_PREFS_KEY, "");
-
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (ctx) => const LoginScreen()));
-                          },
-                          child: const Text(
-                            "Logout",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ],
-                    );
-                  });
-            },
-            icon: const Icon(
-              Icons.logout,
-              color: Colors.white,
-            ),
-          ),
         ],
         backgroundColor: Colors.blue,
       ),
       body: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
         future: fireStore
             .collection("users")
-            .doc(userId)
+            .doc(widget.userId)
             .collection("notes")
             .orderBy("time", descending: true)
             .get(),
@@ -247,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 onPressed: () {
                                                   fireStore
                                                       .collection("users")
-                                                      .doc(userId)
+                                                      .doc(widget.userId)
                                                       .collection("notes")
                                                       .doc(mData[index].id)
                                                       .delete();
@@ -292,10 +249,63 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: Drawer(
         child: SafeArea(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              TextButton.icon(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (_) {
+                        return AlertDialog(
+                          title: const Text("Logout?"),
+                          content: const Text("Are sure want to logout ?"),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Text(
+                                "Cancel",
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: () async {
+                                var pref =
+                                    await SharedPreferences.getInstance();
+                                pref.setString(LoginScreen.LOGIN_PREFS_KEY, "");
+
+                                Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (ctx) => const LoginScreen()));
+                              },
+                              child: const Text(
+                                "Logout",
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ],
+                        );
+                      });
+                },
+                label: const Text(
+                  "Logout",
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 18),
+                ),
+                icon: const Icon(
+                  Icons.logout,
+                  color: Colors.black,
+                ),
+              ),
               Text(
                 userName,
-                style: TextStyle(
+                style: const TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.w500,
                     fontSize: 18),
@@ -367,7 +377,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (isUpdate) {
                             /// For Update Note
                             collRef
-                                .doc(userId)
+                                .doc(widget.userId)
                                 .collection("notes")
                                 .doc(docId)
                                 .update(NoteModel(
@@ -380,7 +390,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           } else {
                             /// For Add New Note
                             collRef
-                                .doc(userId)
+                                .doc(widget.userId)
                                 .collection("notes")
                                 .add(NoteModel(
                                   title: titleController.text.toString(),

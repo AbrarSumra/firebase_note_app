@@ -129,7 +129,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (ctx) => const HomeScreen()));
+                                      builder: (ctx) => HomeScreen(
+                                            userId: userCred.user!.uid,
+                                          )));
                             } on FirebaseAuthException catch (e) {
                               if (e.code == 'user-not-found') {
                                 ScaffoldMessenger.of(context).showSnackBar(
