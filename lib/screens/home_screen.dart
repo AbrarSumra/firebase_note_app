@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wscube_firebase/models/note_model.dart';
@@ -6,9 +7,8 @@ import 'package:wscube_firebase/screens/login_page.dart';
 import 'package:wscube_firebase/widget_constant/custom_textfield.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, this.userName = "", required this.userId});
+  const HomeScreen({super.key, this.userName = ""});
   final String userName;
-  final String userId;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -16,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  //String userId = "";
+  String? userId;
   String userName = "";
   bool isSearching = false;
 
@@ -33,15 +33,15 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     fireStore = FirebaseFirestore.instance;
-    //getUidFromPrefs();
+    getUidFromPrefs();
     //getUserName();
   }
 
-  /*getUidFromPrefs() async {
+  getUidFromPrefs() async {
     var prefs = await SharedPreferences.getInstance();
     userId = prefs.getString(LoginScreen.LOGIN_PREFS_KEY)!;
     setState(() {});
-  }*/
+  }
 
   /// For Search
   List<QueryDocumentSnapshot<Map<String, dynamic>>> filterNotes(
@@ -132,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
         future: fireStore
             .collection("users")
-            .doc(widget.userId)
+            .doc(userId)
             .collection("notes")
             .orderBy("time", descending: true)
             .get(),
@@ -204,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 onPressed: () {
                                                   fireStore
                                                       .collection("users")
-                                                      .doc(widget.userId)
+                                                      .doc(userId)
                                                       .collection("notes")
                                                       .doc(mData[index].id)
                                                       .delete();
@@ -276,6 +276,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 var pref =
                                     await SharedPreferences.getInstance();
                                 pref.setString(LoginScreen.LOGIN_PREFS_KEY, "");
+
+                                await FirebaseAuth.instance.signOut();
 
                                 Navigator.pushReplacement(
                                     context,
@@ -377,7 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (isUpdate) {
                             /// For Update Note
                             collRef
-                                .doc(widget.userId)
+                                .doc(userId)
                                 .collection("notes")
                                 .doc(docId)
                                 .update(NoteModel(
@@ -390,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           } else {
                             /// For Add New Note
                             collRef
-                                .doc(widget.userId)
+                                .doc(userId)
                                 .collection("notes")
                                 .add(NoteModel(
                                   title: titleController.text.toString(),

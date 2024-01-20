@@ -31,9 +31,7 @@ class _SplashScreenState extends State<SplashScreen> {
       }
 
       if (checkLogin != null && !checkLogin.isEmpty) {
-        navigateTo = HomeScreen(
-          userId: checkLogin,
-        );
+        navigateTo = HomeScreen();
       }
 
       Navigator.pushReplacement(
