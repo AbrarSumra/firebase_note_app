@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:wscube_firebase/screens/otp_screens/otp_screen.dart';
@@ -105,14 +106,30 @@ class MobileNumberScreen extends StatelessWidget {
                 const SizedBox(height: 41),
                 CustomButton(
                   label: "Get OTP",
-                  onTap: () {
+                  onTap: () async {
                     if (mobileController.text.isNotEmpty) {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (ctx) => OTPScreen(
-                                    moNumber: int.parse(mobileController.text),
-                                  )));
+                      await FirebaseAuth.instance.verifyPhoneNumber(
+                        phoneNumber: "+91${mobileController.text.toString()}",
+                        verificationCompleted:
+                            (PhoneAuthCredential credential) {
+                          print("Verification Completed");
+                        },
+                        verificationFailed: (FirebaseAuthException e) {
+                          print("Verification Failed");
+                        },
+                        codeAutoRetrievalTimeout: (String verificationId) {},
+                        codeSent: (String verificationId, int? resendToken) {
+                          // navigate to next screen (OTP)
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (ctx) => OTPScreen(
+                                        moNumber:
+                                            int.parse(mobileController.text),
+                                        mVerificationId: verificationId,
+                                      )));
+                        },
+                      );
                     }
                   },
                 ),

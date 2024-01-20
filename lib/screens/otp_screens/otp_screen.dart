@@ -1,35 +1,33 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wscube_firebase/screens/home_screen.dart';
+import 'package:wscube_firebase/screens/login_page.dart';
 import 'package:wscube_firebase/widget_constant/button.dart';
 
 class OTPScreen extends StatefulWidget {
-  const OTPScreen({super.key, required this.moNumber});
+  const OTPScreen(
+      {super.key, required this.moNumber, required this.mVerificationId});
 
   final int moNumber;
+  final String mVerificationId;
 
   @override
   State<OTPScreen> createState() => _OTPScreenState();
 }
 
 class _OTPScreenState extends State<OTPScreen> {
-  List<TextEditingController> controllers =
-      List.generate(6, (index) => TextEditingController());
-  List<FocusNode> focusNodes = List.generate(6, (index) => FocusNode());
+  TextEditingController otp1 = TextEditingController();
+  TextEditingController otp2 = TextEditingController();
+  TextEditingController otp3 = TextEditingController();
+  TextEditingController otp4 = TextEditingController();
+  TextEditingController otp5 = TextEditingController();
+  TextEditingController otp6 = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-
-    for (int i = 0; i < controllers.length; i++) {
-      final currentController = controllers[i];
-      final nextFocus = i < controllers.length - 1 ? focusNodes[i + 1] : null;
-
-      currentController.addListener(() {
-        if (currentController.text.length == 1 && nextFocus != null) {
-          FocusScope.of(context).requestFocus(nextFocus);
-        }
-      });
-    }
   }
 
   @override
@@ -84,30 +82,15 @@ class _OTPScreenState extends State<OTPScreen> {
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.9,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(
-                    controllers.length,
-                    (index) => SizedBox(
-                      width: 40,
-                      height: 55,
-                      child: TextFormField(
-                        controller: controllers[index],
-                        maxLength: 1,
-                        keyboardType: TextInputType.number,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        textAlign: TextAlign.center,
-                        focusNode: focusNodes[index],
-                        decoration: const InputDecoration(
-                          counterText: '',
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      mTextField(controller: otp1, mFocus: true),
+                      mTextField(controller: otp2, mFocus: false),
+                      mTextField(controller: otp3, mFocus: false),
+                      mTextField(controller: otp4, mFocus: false),
+                      mTextField(controller: otp5, mFocus: false),
+                      mTextField(controller: otp6, mFocus: false),
+                    ]),
               ),
               const SizedBox(height: 11),
               Row(
@@ -139,10 +122,63 @@ class _OTPScreenState extends State<OTPScreen> {
               const SizedBox(height: 11),
               CustomButton(
                 label: "VERIFY & PROCEED",
-                onTap: () {},
+                onTap: () async {
+                  if (otp1.text.isNotEmpty &&
+                      otp2.text.isNotEmpty &&
+                      otp3.text.isNotEmpty &&
+                      otp4.text.isNotEmpty &&
+                      otp5.text.isNotEmpty &&
+                      otp6.text.isNotEmpty) {
+                    var otpCode =
+                        "${otp1.text.toString()}${otp2.text.toString()}${otp3.text.toString()}${otp4.text.toString()}${otp5.text.toString()}${otp6.text.toString()}";
+                    var credential = PhoneAuthProvider.credential(
+                        verificationId: widget.mVerificationId,
+                        smsCode: otpCode);
+                    var auth = FirebaseAuth.instance;
+                    var userCred = await auth.signInWithCredential(credential);
+
+                    var prefs = await SharedPreferences.getInstance();
+                    prefs.setString(
+                        LoginScreen.LOGIN_PREFS_KEY, userCred.user!.uid);
+
+                    Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HomeScreen(),
+                        ));
+                  }
+                },
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget mTextField(
+      {required TextEditingController controller, required bool mFocus}) {
+    return SizedBox(
+      width: 40,
+      height: 55,
+      child: TextFormField(
+        controller: controller,
+        maxLength: 1,
+        autofocus: mFocus,
+        keyboardType: TextInputType.number,
+        onChanged: (value) {
+          if (value.isNotEmpty) {
+            FocusScope.of(context).nextFocus();
+          }
+        },
+        style: const TextStyle(
+          fontSize: 22,
+          color: Colors.black,
+          fontWeight: FontWeight.w500,
+        ),
+        textAlign: TextAlign.center,
+        decoration: const InputDecoration(
+          counterText: '',
         ),
       ),
     );
