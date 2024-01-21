@@ -141,10 +141,13 @@ class _OTPScreenState extends State<OTPScreen> {
                     prefs.setString(
                         LoginScreen.LOGIN_PREFS_KEY, userCred.user!.uid);
 
+                    if (!mounted) {
+                      return;
+                    }
                     Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => HomeScreen(),
+                          builder: (context) => const HomeScreen(),
                         ));
                   }
                 },

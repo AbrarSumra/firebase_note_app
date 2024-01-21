@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wscube_firebase/models/note_model.dart';
 import 'package:wscube_firebase/screens/login_page.dart';
+import 'package:wscube_firebase/screens/new_note.dart';
+import 'package:wscube_firebase/screens/on_boarding/user_profile.dart';
 import 'package:wscube_firebase/widget_constant/custom_textfield.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,6 +20,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String? userId;
   String userName = "";
+  String userEmail = "";
+  String? userProfilePic;
   bool isSearching = false;
 
   late FirebaseFirestore fireStore;
@@ -33,13 +37,27 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     fireStore = FirebaseFirestore.instance;
+    mData;
     getUidFromPrefs();
-    //getUserName();
+    getProfilePic();
+    setState(() {});
+  }
+
+  void getProfilePic() async {
+    var prefs = await SharedPreferences.getInstance();
+    userId = prefs.getString(LoginScreen.LOGIN_PREFS_KEY)!;
+
+    var user = await fireStore.collection("users").doc(userId).get();
+    userProfilePic = user.data()!["profilePic"];
+    setState(() {});
   }
 
   getUidFromPrefs() async {
     var prefs = await SharedPreferences.getInstance();
     userId = prefs.getString(LoginScreen.LOGIN_PREFS_KEY)!;
+    var user = await fireStore.collection("users").doc(userId).get();
+    userName = user.data()!["name"];
+    userEmail = user.data()!["email"];
     setState(() {});
   }
 
@@ -56,23 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
           currNote.desc.toLowerCase().contains(query.toLowerCase());
     }).toList();
   }
-
-  /// For UserName
-  /*Future<void> getUserName() async {
-    try {
-      if (userId.isNotEmpty) {
-        DocumentSnapshot<Map<String, dynamic>> userDoc =
-            await fireStore.collection("users").doc(userId).get();
-        if (userDoc.exists) {
-          setState(() {
-            userName = userDoc.data()?["name"] ?? "";
-          });
-        }
-      }
-    } catch (e) {
-      print("Error fetching username: $e");
-    }
-  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -174,62 +175,73 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           subtitle: Text(currNote.desc),
-                          trailing: SizedBox(
-                            width: 100,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                IconButton(
-                                  onPressed: () {
-                                    bottomSheet(
-                                      isUpdate: true,
-                                      title: currNote.title,
-                                      desc: currNote.desc,
-                                      docId: mData[index].id,
-                                    );
-                                  },
-                                  icon: const Icon(Icons.edit),
-                                ),
-                                IconButton(
-                                  onPressed: () {
-                                    showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return AlertDialog(
-                                            title: const Text("Delete?"),
-                                            content: const Text(
-                                                "Are you want to sure delete?"),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () {
-                                                  fireStore
-                                                      .collection("users")
-                                                      .doc(userId)
-                                                      .collection("notes")
-                                                      .doc(mData[index].id)
-                                                      .delete();
-                                                  setState(() {});
-                                                  Navigator.pop(context);
-                                                },
-                                                child: const Text("Yes"),
-                                              ),
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.pop(context);
-                                                },
-                                                child: const Text("No"),
-                                              )
-                                            ],
-                                          );
-                                        });
-                                  },
-                                  icon: const Icon(
-                                    Icons.delete,
-                                    color: Colors.red,
+                          /* subtitle: Text(DateFormat("dd-MM-yyyy").format(
+                              DateTime.fromMillisecondsSinceEpoch(
+                                  int.parse(currNote.time)))),*/
+                          trailing: Column(
+                            children: [
+                              PopupMenuButton(itemBuilder: (_) {
+                                return [
+                                  PopupMenuItem(
+                                    child: const Text("Edit"),
+                                    onTap: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => NewNoteScreen(
+                                              userId: userId!,
+                                              isUpdate: true,
+                                              title: currNote.title,
+                                              desc: currNote.desc,
+                                              docId: mData[index].id,
+                                            ),
+                                          ));
+                                      /*bottomSheet(
+                                        isUpdate: true,
+                                        title: currNote.title,
+                                        desc: currNote.desc,
+                                        docId: mData[index].id,
+                                      );*/
+                                    },
                                   ),
-                                ),
-                              ],
-                            ),
+                                  PopupMenuItem(
+                                    child: const Text("Delete"),
+                                    onTap: () {
+                                      showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: const Text("Delete?"),
+                                              content: const Text(
+                                                  "Are you want to sure delete?"),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    fireStore
+                                                        .collection("users")
+                                                        .doc(userId)
+                                                        .collection("notes")
+                                                        .doc(mData[index].id)
+                                                        .delete();
+                                                    setState(() {});
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: const Text("Yes"),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: const Text("No"),
+                                                )
+                                              ],
+                                            );
+                                          });
+                                    },
+                                  )
+                                ];
+                              }),
+                            ],
                           ),
                         ),
                       );
@@ -248,71 +260,105 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       drawer: Drawer(
         child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextButton.icon(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (_) {
-                        return AlertDialog(
-                          title: const Text("Logout?"),
-                          content: const Text("Are sure want to logout ?"),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text(
-                                "Cancel",
-                                style: TextStyle(fontSize: 16),
-                              ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListTile(
+                  leading: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => UserProfilePage(
+                                  profilePicUrl: userProfilePic ?? "")));
+                    },
+                    child: userProfilePic != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(50),
+                            child: Image.network(
+                              userProfilePic!,
+                              height: 40,
+                              width: 40,
+                              fit: BoxFit.fill,
                             ),
-                            ElevatedButton(
-                              onPressed: () async {
-                                var pref =
-                                    await SharedPreferences.getInstance();
-                                pref.setString(LoginScreen.LOGIN_PREFS_KEY, "");
-
-                                await FirebaseAuth.instance.signOut();
-
-                                Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (ctx) => const LoginScreen()));
-                              },
-                              child: const Text(
-                                "Logout",
-                                style: TextStyle(fontSize: 16),
+                          )
+                        : const Icon(Icons.account_circle),
+                  ),
+                  title: Text(
+                    userName,
+                    style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18),
+                  ),
+                  subtitle: Text(
+                    userEmail,
+                    style: const TextStyle(
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) {
+                          return AlertDialog(
+                            title: const Text("Logout?"),
+                            content: const Text("Are sure want to logout ?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text(
+                                  "Cancel",
+                                  style: TextStyle(fontSize: 16),
+                                ),
                               ),
-                            ),
-                          ],
-                        );
-                      });
-                },
-                label: const Text(
-                  "Logout",
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18),
-                ),
-                icon: const Icon(
-                  Icons.logout,
-                  color: Colors.black,
-                ),
-              ),
-              Text(
-                userName,
-                style: const TextStyle(
+                              ElevatedButton(
+                                onPressed: () async {
+                                  var pref =
+                                      await SharedPreferences.getInstance();
+                                  pref.setString(
+                                      LoginScreen.LOGIN_PREFS_KEY, "");
+
+                                  await FirebaseAuth.instance.signOut();
+
+                                  Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (ctx) =>
+                                              const LoginScreen()));
+                                },
+                                child: const Text(
+                                  "Logout",
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ),
+                            ],
+                          );
+                        });
+                  },
+                  label: const Text(
+                    "Logout",
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 18),
+                  ),
+                  icon: const Icon(
+                    Icons.logout,
                     color: Colors.black,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 18),
-              ),
-            ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -321,8 +367,17 @@ class _HomeScreenState extends State<HomeScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30),
         ),
-        onPressed: () {
-          bottomSheet();
+        onPressed: () async {
+          //bottomSheet();
+          var newNote = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (ctx) => NewNoteScreen(
+                        userId: userId!,
+                      )));
+          if (newNote != null) {
+            setState(() {});
+          }
         },
         child: const Icon(
           Icons.add,

@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wscube_firebase/screens/home_screen.dart';
-import 'package:wscube_firebase/screens/otp_screens/mobile_number_screen.dart';
 import 'package:wscube_firebase/widget_constant/button.dart';
 
 import '../widget_constant/text_field.dart';
+import 'on_boarding/mobile_number_screen.dart';
 import 'sign_up_page.dart';
 
 class LoginScreen extends StatefulWidget {

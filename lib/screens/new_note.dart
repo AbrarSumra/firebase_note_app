@@ -5,16 +5,19 @@ import '../models/note_model.dart';
 import '../widget_constant/custom_textfield.dart';
 
 class NewNoteScreen extends StatefulWidget {
-  const NewNoteScreen(
-      {super.key,
-      this.title = "",
-      this.desc = "",
-      this.docId = "",
-      this.isUpdate = false});
+  const NewNoteScreen({
+    super.key,
+    required this.userId,
+    this.title = "",
+    this.desc = "",
+    this.docId = "",
+    this.isUpdate = false,
+  });
   final bool isUpdate;
   final String title;
   final String desc;
   final String docId;
+  final String userId;
 
   @override
   State<NewNoteScreen> createState() => _NewNoteScreenState();
@@ -24,7 +27,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
   TextEditingController titleController = TextEditingController();
   TextEditingController descController = TextEditingController();
 
-  late FirebaseFirestore firestore;
+  FirebaseFirestore fireStore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -66,10 +69,15 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
                           onPressed: () {
                             if (titleController.text.isNotEmpty &&
                                 descController.text.isNotEmpty) {
-                              var collRef = firestore.collection("notes");
+                              var collRef = fireStore.collection("users");
+
                               if (widget.isUpdate) {
                                 /// For Update Note
-                                collRef.doc(widget.docId).update(NoteModel(
+                                collRef
+                                    .doc(widget.userId)
+                                    .collection("notes")
+                                    .doc(widget.docId)
+                                    .update(NoteModel(
                                       title: titleController.text.toString(),
                                       desc: descController.text.toString(),
                                       time: DateTime.now()
@@ -78,13 +86,17 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
                                     ).toMap());
                               } else {
                                 /// For Add New Note
-                                collRef.add(NoteModel(
-                                  title: titleController.text.toString(),
-                                  desc: descController.text.toString(),
-                                  time: DateTime.now()
-                                      .millisecondsSinceEpoch
-                                      .toString(),
-                                ).toMap());
+
+                                collRef
+                                    .doc(widget.userId)
+                                    .collection("notes")
+                                    .add(NoteModel(
+                                      title: titleController.text.toString(),
+                                      desc: descController.text.toString(),
+                                      time: DateTime.now()
+                                          .millisecondsSinceEpoch
+                                          .toString(),
+                                    ).toMap());
                               }
                               titleController.clear();
                               descController.clear();

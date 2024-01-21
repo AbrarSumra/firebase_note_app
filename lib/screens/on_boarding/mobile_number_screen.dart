@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:wscube_firebase/screens/otp_screens/otp_screen.dart';
 import 'package:wscube_firebase/widget_constant/button.dart';
+import 'package:wscube_firebase/screens/on_boarding/otp_screen.dart';
 
 class MobileNumberScreen extends StatelessWidget {
   MobileNumberScreen({super.key});

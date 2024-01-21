@@ -25,13 +25,13 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(seconds: 6), () async {
       var prefs = await SharedPreferences.getInstance();
       var checkLogin = prefs.getString(LoginScreen.LOGIN_PREFS_KEY);
-      Widget navigateTo = LoginScreen();
+      Widget navigateTo = const LoginScreen();
       if (!mounted) {
         return;
       }
 
-      if (checkLogin != null && !checkLogin.isEmpty) {
-        navigateTo = HomeScreen();
+      if (checkLogin != null && checkLogin.isNotEmpty) {
+        navigateTo = const HomeScreen();
       }
 
       Navigator.pushReplacement(
