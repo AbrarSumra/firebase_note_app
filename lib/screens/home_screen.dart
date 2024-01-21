@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wscube_firebase/models/note_model.dart';
 import 'package:wscube_firebase/screens/login_page.dart';
-import 'package:wscube_firebase/screens/new_note.dart';
 import 'package:wscube_firebase/screens/on_boarding/user_profile.dart';
 import 'package:wscube_firebase/widget_constant/custom_textfield.dart';
 
@@ -185,7 +184,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   PopupMenuItem(
                                     child: const Text("Edit"),
                                     onTap: () {
-                                      Navigator.push(
+                                      /// Update to Next Page
+                                      /*Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) => NewNoteScreen(
@@ -195,13 +195,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                               desc: currNote.desc,
                                               docId: mData[index].id,
                                             ),
-                                          ));
-                                      /*bottomSheet(
+                                          ));*/
+                                      /// Update to Bottom Sheet
+                                      bottomSheet(
                                         isUpdate: true,
                                         title: currNote.title,
                                         desc: currNote.desc,
                                         docId: mData[index].id,
-                                      );*/
+                                      );
                                     },
                                   ),
                                   PopupMenuItem(
@@ -368,8 +369,8 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(30),
         ),
         onPressed: () async {
-          //bottomSheet();
-          var newNote = await Navigator.push(
+          bottomSheet();
+          /* var newNote = await Navigator.push(
               context,
               MaterialPageRoute(
                   builder: (ctx) => NewNoteScreen(
@@ -377,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       )));
           if (newNote != null) {
             setState(() {});
-          }
+          }*/
         },
         child: const Icon(
           Icons.add,
