@@ -37,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
           decoration: const BoxDecoration(
             image: DecorationImage(
                 image: AssetImage(
-                    "assets/images/Login Screen BackGround Image.avif"),
+                    "assets/images/Login Screen BackGround Image.jpg"),
                 fit: BoxFit.fill),
           ),
           child: BackdropFilter(
@@ -129,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (ctx) => HomeScreen()));
+                                      builder: (ctx) => const HomeScreen()));
                             } on FirebaseAuthException catch (e) {
                               if (e.code == 'user-not-found') {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -154,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const Text(
                           "Don't have an account yet?",
                           style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 14,
                               color: Colors.black,
                               fontWeight: FontWeight.w500),
                         ),
@@ -172,23 +172,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    const Row(
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SizedBox(
-                          width: 180,
-                          child: Divider(
+                          width: MediaQuery.of(context).size.width * 0.42,
+                          child: const Divider(
                             endIndent: 10,
                             color: Colors.black,
                           ),
                         ),
-                        Text(
+                        const Text(
                           "OR",
                           style: TextStyle(
                               fontWeight: FontWeight.w500, fontSize: 16),
                         ),
                         SizedBox(
-                          width: 179,
-                          child: Divider(
+                          width: MediaQuery.of(context).size.width * 0.42,
+                          child: const Divider(
                             indent: 10,
                             color: Colors.black,
                           ),

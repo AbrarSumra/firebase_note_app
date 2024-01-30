@@ -14,7 +14,7 @@ import '../login_page.dart';
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key, required this.profilePicUrl});
 
-  final String profilePicUrl;
+  final String? profilePicUrl;
 
   @override
   State<UserProfilePage> createState() => _UserProfilePageState();
@@ -58,7 +58,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(50),
                           child: Image.network(
-                            widget.profilePicUrl,
+                            widget.profilePicUrl!,
                             height: 100,
                             width: 100,
                             fit: BoxFit.fill,

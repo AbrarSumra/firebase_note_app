@@ -1,11 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wscube_firebase/models/note_model.dart';
-import 'package:wscube_firebase/screens/drawer_page.dart';
+import 'package:wscube_firebase/notifications/notification_service.dart';
 import 'package:wscube_firebase/screens/login_page.dart';
 import 'package:wscube_firebase/screens/on_boarding/user_profile.dart';
 import 'package:wscube_firebase/widget_constant/custom_textfield.dart';
+import 'package:timezone/data/latest.dart' as tzl; // For Notification Timezone
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, this.userName = ""});
@@ -24,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isSearching = false;
 
   late FirebaseFirestore fireStore;
+  NotificationService? notificationService;
 
   TextEditingController titleController = TextEditingController();
   TextEditingController descController = TextEditingController();
@@ -40,6 +44,18 @@ class _HomeScreenState extends State<HomeScreen> {
     mData;
     getUidFromPrefs();
     getProfilePic();
+
+    /// For Notification
+    notificationService = NotificationService();
+    notificationService!.initialNotificationManager();
+    tzl.initializeTimeZones();
+    FirebaseMessaging.onMessage.listen((event) {
+      var mNotification = event.notification;
+      var title = mNotification!.title;
+      var body = mNotification.body;
+
+      notificationService!.sendNotification(id: 100, title: title!, body: body);
+    });
     setState(() {});
   }
 
@@ -48,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
     userId = prefs.getString(LoginScreen.LOGIN_PREFS_KEY)!;
 
     var user = await fireStore.collection("users").doc(userId).get();
-    userProfilePic = user.data()!["profilePic"];
+    userProfilePic = user.data()!["profilePic"] ?? "";
     setState(() {});
   }
 
@@ -56,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
     var prefs = await SharedPreferences.getInstance();
     userId = prefs.getString(LoginScreen.LOGIN_PREFS_KEY)!;
     var user = await fireStore.collection("users").doc(userId).get();
-    userName = user.data()!["name"];
+    userName = user.data()!["name"] ?? "";
     userEmail = user.data()!["email"];
     setState(() {});
   }
@@ -83,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: isSearching
             ? SizedBox(
                 height: 40,
+                width: 100,
                 child: TextFormField(
                   controller: searchController,
                   decoration: InputDecoration(
@@ -104,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style:
                     TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
-        leading: IconButton(
+        /*leading: IconButton(
           onPressed: () {
             _scaffoldKey.currentState!.openDrawer();
             setState(() {});
@@ -113,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Icons.menu,
             color: Colors.white,
           ),
-        ),
+        ),*/
         actions: [
           IconButton(
             onPressed: () {
@@ -150,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Colors.white,
                   ),
           ),
-          SizedBox(width: 10),
+          const SizedBox(width: 10),
         ],
         backgroundColor: Colors.blue,
       ),
@@ -284,7 +301,137 @@ class _HomeScreenState extends State<HomeScreen> {
           return Container();
         },
       ),
-      drawer: DrawerPage(userProfilePic: userProfilePic),
+      drawer: Drawer(
+        //DrawerPage(userProfilePic: userProfilePic),
+        backgroundColor: Colors.blue,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  child: Text(
+                    "Note App",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+                const Divider(color: Colors.black),
+                ListTile(
+                  leading: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => UserProfilePage(
+                                  profilePicUrl: userProfilePic ?? "")));
+                    },
+                    child: userProfilePic != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(50),
+                            child: Image.network(
+                              userProfilePic!,
+                              height: 50,
+                              width: 50,
+                              fit: BoxFit.fill,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.account_circle,
+                            color: Colors.white,
+                          ),
+                  ),
+                  title: Text(
+                    userName,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18),
+                  ),
+                  subtitle: Text(
+                    userEmail,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16),
+                  ),
+                ),
+                const Divider(indent: 80),
+                iconTextButton(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  icon: Icons.lightbulb_outline,
+                  name: "Notes",
+                ),
+                iconTextButton(
+                  onTap: () {},
+                  icon: Icons.add_alert_rounded,
+                  name: "Reminders",
+                ),
+                const Divider(indent: 45),
+                iconTextButton(
+                  onTap: () {},
+                  icon: Icons.settings,
+                  name: "Settings",
+                ),
+                iconTextButton(
+                  onTap: () async {
+                    Navigator.pop(context);
+                    showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) {
+                          return AlertDialog(
+                            title: const Text("Logout?"),
+                            content: const Text("Are sure want to logout ?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text(
+                                  "Cancel",
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  var pref =
+                                      await SharedPreferences.getInstance();
+                                  pref.setString(
+                                      LoginScreen.LOGIN_PREFS_KEY, "");
+
+                                  await FirebaseAuth.instance.signOut();
+
+                                  Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (ctx) =>
+                                              const LoginScreen()));
+                                },
+                                child: const Text(
+                                  "Logout",
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ),
+                            ],
+                          );
+                        });
+                  },
+                  icon: Icons.logout,
+                  name: "Logout",
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue,
         shape: RoundedRectangleBorder(
@@ -406,5 +553,23 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         });
+  }
+
+  Widget iconTextButton(
+      {required VoidCallback onTap,
+      required IconData icon,
+      required String name}) {
+    return TextButton.icon(
+      onPressed: onTap,
+      label: Text(
+        name,
+        style: const TextStyle(
+            color: Colors.white, fontWeight: FontWeight.w500, fontSize: 18),
+      ),
+      icon: Icon(
+        icon,
+        color: Colors.white,
+      ),
+    );
   }
 }

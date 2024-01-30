@@ -27,7 +27,7 @@ class SignupScreen extends StatelessWidget {
           decoration: const BoxDecoration(
             image: DecorationImage(
                 image: AssetImage(
-                    "assets/images/Login Screen BackGround Image.avif"),
+                    "assets/images/Login Screen BackGround Image.jpg"),
                 fit: BoxFit.cover),
           ),
           child: BackdropFilter(
@@ -115,7 +115,7 @@ class SignupScreen extends StatelessWidget {
                                 Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (ctx) => LoginScreen()));
+                                        builder: (ctx) => const LoginScreen()));
                               } on FirebaseAuthException catch (e) {
                                 if (e.code == 'weak-password') {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -143,18 +143,18 @@ class SignupScreen extends StatelessWidget {
                       const Text(
                         "You have already an account ?",
                         style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w500),
+                            fontSize: 16, fontWeight: FontWeight.w500),
                       ),
                       TextButton(
                         onPressed: () {
                           Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (ctx) => LoginScreen()));
+                                  builder: (ctx) => const LoginScreen()));
                         },
                         child: const Text(
                           "Login",
-                          style: TextStyle(fontSize: 20),
+                          style: TextStyle(fontSize: 18),
                         ),
                       ),
                     ],
