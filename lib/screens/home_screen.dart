@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wscube_firebase/models/note_model.dart';
+import 'package:wscube_firebase/screens/drawer_page.dart';
 import 'package:wscube_firebase/screens/login_page.dart';
 import 'package:wscube_firebase/screens/on_boarding/user_profile.dart';
 import 'package:wscube_firebase/widget_constant/custom_textfield.dart';
@@ -30,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   TextEditingController searchController = TextEditingController();
 
   List<QueryDocumentSnapshot<Map<String, dynamic>>> mData = [];
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> allUsers = [];
   List<QueryDocumentSnapshot<Map<String, dynamic>>> filteredData = [];
 
   @override
@@ -126,6 +127,30 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.white,
             ),
           ),
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => UserProfilePage(
+                          profilePicUrl: userProfilePic ?? "")));
+            },
+            child: userProfilePic != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: Image.network(
+                      userProfilePic!,
+                      height: 40,
+                      width: 40,
+                      fit: BoxFit.fill,
+                    ),
+                  )
+                : const Icon(
+                    Icons.account_circle,
+                    color: Colors.white,
+                  ),
+          ),
+          SizedBox(width: 10),
         ],
         backgroundColor: Colors.blue,
       ),
@@ -259,110 +284,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return Container();
         },
       ),
-      drawer: Drawer(
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ListTile(
-                  leading: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => UserProfilePage(
-                                  profilePicUrl: userProfilePic ?? "")));
-                    },
-                    child: userProfilePic != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(50),
-                            child: Image.network(
-                              userProfilePic!,
-                              height: 40,
-                              width: 40,
-                              fit: BoxFit.fill,
-                            ),
-                          )
-                        : const Icon(Icons.account_circle),
-                  ),
-                  title: Text(
-                    userName,
-                    style: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18),
-                  ),
-                  subtitle: Text(
-                    userEmail,
-                    style: const TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 16),
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (_) {
-                          return AlertDialog(
-                            title: const Text("Logout?"),
-                            content: const Text("Are sure want to logout ?"),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: const Text(
-                                  "Cancel",
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                              ),
-                              ElevatedButton(
-                                onPressed: () async {
-                                  var pref =
-                                      await SharedPreferences.getInstance();
-                                  pref.setString(
-                                      LoginScreen.LOGIN_PREFS_KEY, "");
-
-                                  await FirebaseAuth.instance.signOut();
-
-                                  Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (ctx) =>
-                                              const LoginScreen()));
-                                },
-                                child: const Text(
-                                  "Logout",
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                              ),
-                            ],
-                          );
-                        });
-                  },
-                  label: const Text(
-                    "Logout",
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 18),
-                  ),
-                  icon: const Icon(
-                    Icons.logout,
-                    color: Colors.black,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      drawer: DrawerPage(userProfilePic: userProfilePic),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue,
         shape: RoundedRectangleBorder(

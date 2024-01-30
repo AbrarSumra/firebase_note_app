@@ -22,54 +22,96 @@ class UserProfilePage extends StatefulWidget {
 
 class _UserProfilePageState extends State<UserProfilePage> {
   CroppedFile? croppedImg;
+  String? userId;
+  FirebaseFirestore? fireStore;
+
+  @override
+  void initState() {
+    super.initState();
+    fireStore = FirebaseFirestore.instance;
+    getUserId();
+  }
+
+  void getUserId() async {
+    var prefs = await SharedPreferences.getInstance();
+    userId = prefs.getString(LoginScreen.LOGIN_PREFS_KEY)!;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            croppedImg != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(50),
-                    child: Image.file(
-                      File(croppedImg!.path),
-                      height: 100,
-                      width: 100,
-                    ),
-                  )
-                : widget.profilePicUrl != ""
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(50),
-                        child: Image.network(
-                          widget.profilePicUrl,
-                          height: 100,
-                          width: 100,
-                          fit: BoxFit.fill,
-                        ),
-                      )
-                    : const Icon(
-                        CupertinoIcons.profile_circled,
-                        size: 100,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              croppedImg != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(50),
+                      child: Image.file(
+                        File(croppedImg!.path),
+                        height: 100,
+                        width: 100,
                       ),
-            const SizedBox(height: 21),
-            CustomButton(
-              label: "Choose image",
-              onTap: () {
-                openImagePicker();
-              },
-            ),
-            const SizedBox(height: 21),
-            croppedImg != null
-                ? CustomButton(
-                    label: "Upload image",
-                    onTap: () {
-                      uploadImage();
-                    },
-                  )
-                : const Text("Select an image to Upload"),
-          ],
+                    )
+                  : widget.profilePicUrl != ""
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(50),
+                          child: Image.network(
+                            widget.profilePicUrl,
+                            height: 100,
+                            width: 100,
+                            fit: BoxFit.fill,
+                          ),
+                        )
+                      : const Icon(
+                          CupertinoIcons.profile_circled,
+                          size: 100,
+                        ),
+              const SizedBox(height: 21),
+              CustomButton(
+                label: "Choose image",
+                onTap: () {
+                  openImagePicker();
+                },
+              ),
+              const SizedBox(height: 21),
+              croppedImg != null
+                  ? CustomButton(
+                      label: "Upload image",
+                      onTap: () {
+                        uploadImage();
+                      },
+                    )
+                  : const Text("Select an image to Upload"),
+              const SizedBox(height: 11),
+              const SizedBox(height: 11),
+              FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                future: fireStore!
+                    .collection("users")
+                    .doc(userId)
+                    .collection("profilePics")
+                    .get(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return GridView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: snapshot.data!.docs.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3),
+                        itemBuilder: (_, index) {
+                          var eachImage =
+                              snapshot.data!.docs[index].data()["image"];
+                          return Image.network(eachImage);
+                        });
+                  }
+                  return Container();
+                },
+              )
+            ],
+          ),
         ),
       ),
     );
